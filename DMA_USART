@@ -1,6 +1,4 @@
-
 STM32的串口1发送、接收DMA模式函数配置，已经调试可用，大家可以交流学习下
-
 /**********************************************************************************
 **函数名称：void USART1_Config(void)
 **函数功能：USART1串口引脚初始化
@@ -12,23 +10,17 @@ static void USART1_Config(void)
 {
    GPIO_InitTypeDef GPIO_InitStructure;
    USART_InitTypeDef USART_InitStructure;
-
-
    RCC_APB2PeriphClockCmd(USART1_RCC | RCC_APB2Periph_USART1, ENABLE);        //打开串口时钟
-   
-   
    /* USART1 GPIO config */
    /* Configure USART1 Tx (PA.9) as alternate function push-pull */
    GPIO_InitStructure.GPIO_Pin   = USART1_TX;
    GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_AF_PP;
    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
    GPIO_Init(USART1_PORT, &GPIO_InitStructure); 
-   
    /* Configure USART1 Rx (PA.10) as input floating */
    GPIO_InitStructure.GPIO_Pin  = USART1_RX;
    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
    GPIO_Init(USART1_PORT, &GPIO_InitStructure);
-   
    /* USART1 mode config */
    USART_InitStructure.USART_BaudRate   = BOOTRATE;
    USART_InitStructure.USART_WordLength = USART_WordLength_8b;
@@ -36,16 +28,11 @@ static void USART1_Config(void)
    USART_InitStructure.USART_Parity     = USART_Parity_No ;
    USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
    USART_InitStructure.USART_Mode       = USART_Mode_Rx | USART_Mode_Tx;
-   
    USART_Init(USART1, &USART_InitStructure); 
-
    //USART_ITConfig(USART1, USART_IT_RXNE, ENABLE);   //使能串口1中断
-
    USART_DMACmd(USART1, USART_DMAReq_Tx, ENABLE);            //使能USART1发送DMA请求 
-   USART_DMACmd(USART1, USART_DMAReq_Rx, ENABLE);          //使能USART1接收DMA请求
-       
+   USART_DMACmd(USART1, USART_DMAReq_Rx, ENABLE);          //使能USART1接收DMA请求   
    USART_Cmd(USART1, ENABLE);                                                  //启动串口 
-
 }
 
 
@@ -61,14 +48,12 @@ static void USART1_NVIC_Configuration(void)
     NVIC_InitTypeDef NVIC_InitStructure;
 
     //设置NVIC优先级分组为Group2：0-3抢占式优先级，0-3的响应式优先级
-    NVIC_PriorityGroupConfig(NVIC_PriorityGroup_0);
-        
+    NVIC_PriorityGroupConfig(NVIC_PriorityGroup_0);   
     NVIC_InitStructure.NVIC_IRQChannel = USART1_IRQn;                                      //串口接收中断打开
     NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = USART1_IRQn_Priority;  //设置中断优先级
     NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
     NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
     NVIC_Init(&NVIC_InitStructure);
-
 }
 
 
@@ -82,8 +67,7 @@ static void USART1_NVIC_Configuration(void)
 static void USART1_Init(void)
 {
     USART1_Config();                    //USART1引脚功能初始化
-
-        USART1_NVIC_Configuration();        //USART1中断初始化
+    USART1_NVIC_Configuration();        //USART1中断初始化
 }
 
 /**********************************************************************************
@@ -96,9 +80,7 @@ static void USART1_Init(void)
 static void DMA1_USART1_TX_Configuration(void)
 {
     DMA_InitTypeDef DMA_InitStructure;
-
-        RCC_AHBPeriphClockCmd(RCC_AHBPeriph_DMA1, ENABLE);            //开启DMA时钟 
-
+    RCC_AHBPeriphClockCmd(RCC_AHBPeriph_DMA1, ENABLE);            //开启DMA时钟 
         /*
          *  DMA设置：
      *  设置DMA源：内存地址&串口数据寄存器地址
@@ -109,8 +91,7 @@ static void DMA1_USART1_TX_Configuration(void)
      *  DMA模式：一次传输，非循环
      *  优先级：高
          */    
-    DMA_DeInit(DMA1_Channel4);                                         //串口1的DMA传输通道是通道4
-                                                                                                                                           
+    DMA_DeInit(DMA1_Channel4);                                         //串口1的DMA传输通道是通道4                                                                                                                                       
     DMA_InitStructure.DMA_PeripheralBaseAddr = (u32)(&USART1->DR);     //设置DMA源
     DMA_InitStructure.DMA_MemoryBaseAddr = (u32)USART1_SendBuff;           //DMA内存基地址
     DMA_InitStructure.DMA_DIR = DMA_DIR_PeripheralDST;                 //外设作为DMA的目的端
@@ -122,13 +103,8 @@ static void DMA1_USART1_TX_Configuration(void)
     DMA_InitStructure.DMA_Mode =  DMA_Mode_Circular;                   //DMA_Mode_Normal（只传送一次）, DMA_Mode_Circular （不停地传送）
     DMA_InitStructure.DMA_Priority = DMA_Priority_High;                //(DMA传送优先级为高)
     DMA_InitStructure.DMA_M2M = DMA_M2M_Disable;                                           //非内存到内存
-    
-        DMA_Init(DMA1_Channel4, &DMA_InitStructure);                  
-
-        DMA_ITConfig(DMA1_Channel4, DMA_IT_TC, ENABLE);       //使能DMA通道4传输完成中断
-
-
-
+    DMA_Init(DMA1_Channel4, &DMA_InitStructure);                  
+    DMA_ITConfig(DMA1_Channel4, DMA_IT_TC, ENABLE);       //使能DMA通道4传输完成中断
 }
 
 
@@ -142,13 +118,11 @@ static void DMA1_USART1_TX_Configuration(void)
 static void DMA1_USART1_TX_NVIC_Configuration(void)
 {
    NVIC_InitTypeDef NVIC_InitStructure;
-   
    NVIC_InitStructure.NVIC_IRQChannel = DMA1_Channel4_IRQn;  
    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 3;  
    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 2;  
    NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;  
    NVIC_Init(&NVIC_InitStructure);
-
 }
 
 
@@ -161,9 +135,8 @@ static void DMA1_USART1_TX_NVIC_Configuration(void)
 **********************************************************************************/
 static void DMA1_USART1_TX_Init(void)
 {
-           DMA1_USART1_TX_Configuration();
-
-        DMA1_USART1_TX_NVIC_Configuration();
+    DMA1_USART1_TX_Configuration();
+    DMA1_USART1_TX_NVIC_Configuration();
 }
 
 
@@ -177,11 +150,8 @@ static void DMA1_USART1_TX_Init(void)
 static void DMA1_USART1_RX_Configuration(void)
 {        
         DMA_InitTypeDef DMA_InitStructure;
-
         RCC_AHBPeriphClockCmd(RCC_AHBPeriph_DMA1, ENABLE);
-
         DMA_DeInit(DMA1_Channel5);
-
         DMA_InitStructure.DMA_PeripheralBaseAddr = (u32)&USART1->DR;           //DMA外设基地址
         DMA_InitStructure.DMA_MemoryBaseAddr = (u32)USART1_RecvBuff;                    //DMA内存基地址
         DMA_InitStructure.DMA_DIR = DMA_DIR_PeripheralSRC;                                             //外设作为数据传输的来源
@@ -193,13 +163,9 @@ static void DMA1_USART1_RX_Configuration(void)
         DMA_InitStructure.DMA_Mode = DMA_Mode_Circular;                                            //循环模式
         DMA_InitStructure.DMA_Priority = DMA_Priority_High;                                //优先级：高
         DMA_InitStructure.DMA_M2M = DMA_M2M_Disable;                                                //非内存到内存
-
         DMA_Init(DMA1_Channel5, &DMA_InitStructure);                                                   //初始化DMA
-
         DMA_ITConfig(DMA1_Channel5, DMA_IT_TC, ENABLE); //使能DMA通道5传输完成中断
-        DMA_Cmd(DMA1_Channel5, ENABLE);                                        //使能DMA通道5
-        
-
+        DMA_Cmd(DMA1_Channel5, ENABLE);                                        //使能DMA通道5        
 }
 
 
@@ -214,13 +180,11 @@ static void DMA1_USART1_RX_Configuration(void)
 static void DMA1_USART1_RX_NVIC_Configuration(void)
 {
         NVIC_InitTypeDef NVIC_InitStructure;
-
         NVIC_PriorityGroupConfig(NVIC_PriorityGroup_1);
         NVIC_InitStructure.NVIC_IRQChannel = DMA1_Channel5_IRQn;
         NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;
         NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
         NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
-
         NVIC_Init(&NVIC_InitStructure);        
 }
 
@@ -234,12 +198,9 @@ static void DMA1_USART1_RX_NVIC_Configuration(void)
 **********************************************************************************/
 static void DMA1_USART1_RX_Init(void)
 {
-           DMA1_USART1_RX_Configuration();
-
+        DMA1_USART1_RX_Configuration();
         DMA1_USART1_RX_NVIC_Configuration();
 }
-
-
 /**********************************************************************************
 **函数名称：static void DMA1_USART1_Init(void)
 **函数功能：DMA1串口初始化
@@ -249,12 +210,9 @@ static void DMA1_USART1_RX_Init(void)
 **********************************************************************************/
 static void DMA1_USART1_Init(void)
 {
-           DMA1_USART1_TX_Init();
-
+    DMA1_USART1_TX_Init();
     DMA1_USART1_RX_Init();
 }
-
-
 /**********************************************************************************
 **函数名称：void USART1_Send_Buf(u8 *buf , unsigned int len)
 **函数功能：通过DMA发送串口数据
@@ -265,10 +223,8 @@ static void DMA1_USART1_Init(void)
 **********************************************************************************/
 void USART1_Send_Buf(u8 *buf , unsigned int len)
 {
-        DMA_InitTypeDef DMA_InitStructure;
-
-        RCC_AHBPeriphClockCmd(RCC_AHBPeriph_DMA1, ENABLE);            //开启DMA时钟 
-
+    DMA_InitTypeDef DMA_InitStructure;
+    RCC_AHBPeriphClockCmd(RCC_AHBPeriph_DMA1, ENABLE);            //开启DMA时钟 
         /*
          *  DMA设置：
      *  设置DMA源：内存地址&串口数据寄存器地址
@@ -279,8 +235,7 @@ void USART1_Send_Buf(u8 *buf , unsigned int len)
      *  DMA模式：一次传输，非循环
      *  优先级：高
          */    
-    DMA_DeInit(DMA1_Channel4);                                         //串口1的DMA传输通道是通道4
-                                                                                                                                           
+    DMA_DeInit(DMA1_Channel4);                                         //串口1的DMA传输通道是通道4                                                                                                                                        
     DMA_InitStructure.DMA_PeripheralBaseAddr = (u32)(&USART1->DR);     //设置DMA源
     DMA_InitStructure.DMA_MemoryBaseAddr = (u32)buf;                               //DMA内存基地址
     DMA_InitStructure.DMA_DIR = DMA_DIR_PeripheralDST;                 //外设作为DMA的目的端
@@ -292,11 +247,7 @@ void USART1_Send_Buf(u8 *buf , unsigned int len)
     DMA_InitStructure.DMA_Mode =  DMA_Mode_Normal;                     //DMA_Mode_Normal（只传送一次）, DMA_Mode_Circular （不停地传送）
     DMA_InitStructure.DMA_Priority = DMA_Priority_High;                //(DMA传送优先级为高)
     DMA_InitStructure.DMA_M2M = DMA_M2M_Disable;                                           //非内存到内存
-    
-        DMA_Init(DMA1_Channel4, &DMA_InitStructure);                  
-
-        DMA_ITConfig(DMA1_Channel4, DMA_IT_TC, ENABLE);       //使能DMA通道4传输完成中断 
-                                      
-        DMA_Cmd(DMA1_Channel4, ENABLE);
-         
+    DMA_Init(DMA1_Channel4, &DMA_InitStructure);                  
+    DMA_ITConfig(DMA1_Channel4, DMA_IT_TC, ENABLE);       //使能DMA通道4传输完成中断                                  
+    DMA_Cmd(DMA1_Channel4, ENABLE);         
 }
